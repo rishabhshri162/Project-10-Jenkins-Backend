@@ -34,7 +34,6 @@ public class JasperCtl {
 	@GetMapping(value = "/report", produces = MediaType.APPLICATION_PDF_VALUE)
 	public void generateReport(HttpServletResponse response) throws JRException, IOException, SQLException {
 
-		System.out.println("******** Jasper Report Start ********");
 
 		Connection con = null;
 
@@ -53,7 +52,7 @@ public class JasperCtl {
 			Map<String, Object> params = new HashMap<>();
 			params.put("createdBy", "Admin");
 
-			// ✅ 4. DB connection
+			// ✅ 4. DB connection  JPA KO HIBERNATE ME CONVERT
 			sessionFactory = entityManager.getEntityManagerFactory().unwrap(SessionFactory.class);
 
 			con = sessionFactory.getSessionFactoryOptions().getServiceRegistry().getService(ConnectionProvider.class)
