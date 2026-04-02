@@ -1,37 +1,9 @@
 version: '3.8'
 
 services:
-
-  frontend:
-    container_name: frontend-container
-    build:
-      context: ./ORSProject-10-UI
-    ports:
-      - "4200:80"
-    depends_on:
-      - backend
-    networks:
-      - my-network
-
-  backend:
-    container_name: backend-container
-    build:
-      context: ./ORSProject-10
-    ports:
-      - "8080:8080"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      - DB_HOST=mysql
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
-    networks:
-      - my-network
-
   mysql:
-    container_name: mysql-container
     image: mysql:8.0
+    container_name: mysql-container
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: orsproject10
@@ -39,18 +11,21 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    restart: unless-stopped
-    networks:
-      - my-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       retries: 5
-      timeout: 5s
 
-networks:
-  my-network:
-    driver: bridge
+  backend:
+    build: .
+    container_name: backend-container
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
 
 volumes:
   mysql_data:
