@@ -7,12 +7,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.rays.common.UserContext;
@@ -26,10 +29,9 @@ import com.rays.service.UserServiceInt;
  * 
  * This filter intercepts every HTTP request and performs:
  * 
- * - Extraction of JWT token from Authorization header
- * - Validation of token
- * - Authentication setup in Spring Security context
- * - Setting UserContext for current request
+ * - Extraction of JWT token from Authorization header - Validation of token -
+ * Authentication setup in Spring Security context - Setting UserContext for
+ * current request
  * 
  * It ensures that only authenticated users can access secured APIs.
  * 
@@ -43,18 +45,18 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 
 	@Autowired
 	private JWTUserDetailsService jwtUserDetailsService;
-	
+
 	@Autowired
 	private UserServiceInt userService;
 
 	/**
 	 * Filters incoming requests and validates JWT token.
 	 * 
-	 * @param request HTTP request
-	 * @param response HTTP response
+	 * @param request     HTTP request
+	 * @param response    HTTP response
 	 * @param filterChain filter chain
 	 * @throws ServletException exception
-	 * @throws IOException exception
+	 * @throws IOException      exception
 	 */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -88,20 +90,28 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 
 				UserDTO dto = new UserDTO();
 				dto.setLoginId(loginId);
-				  UserContextHolder.setContext(new UserContext(dto));
+				UserContextHolder.setContext(new UserContext(dto));
 
 				// Fetch user from database to get complete details
 				UserContext tempContext = new UserContext(dto);
 				UserDTO fullUserDTO = userService.findByLoginId(loginId, tempContext);
 
 				if (fullUserDTO != null) {
-				    UserContext context = new UserContext(fullUserDTO);
-				    UserContextHolder.setContext(context);
+					UserContext context = new UserContext(fullUserDTO);
+					UserContextHolder.setContext(context);
 				} else {
-				    UserContext context = new UserContext(dto);
-				    UserContextHolder.setContext(context);
+					UserContext context = new UserContext(dto);
+					UserContextHolder.setContext(context);
 				}
-			} catch (Exception e) {
+			} catch (CannotCreateTransactionException | DataAccessResourceFailureException
+					| JDBCConnectionException e) {
+				// DB is down
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
+				response.setContentType("application/json");
+				response.getWriter().write(
+						"{\"result\":{\"message\":\"Database server down!! Please try again later.\"},\"success\":false}");
+				return;
+			}catch (Exception e) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getWriter().write("Token is invalid... plz login again..!!");
 				return;
