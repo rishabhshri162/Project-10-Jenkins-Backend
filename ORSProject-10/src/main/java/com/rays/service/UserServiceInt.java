@@ -17,7 +17,7 @@ import com.rays.dto.UserDTO;
 public interface UserServiceInt extends BaseServiceInt<UserDTO> {
 
 	/**
-	 * Finds user by loginId.
+	 * Finds user by logUserServiceIntinId.
 	 * 
 	 * @param name         the loginId of the user
 	 * @param userContext  user context information

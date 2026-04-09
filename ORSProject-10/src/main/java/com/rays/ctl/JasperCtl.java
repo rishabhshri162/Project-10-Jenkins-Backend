@@ -34,7 +34,6 @@ public class JasperCtl {
 	@GetMapping(value = "/report", produces = MediaType.APPLICATION_PDF_VALUE)
 	public void generateReport(HttpServletResponse response) throws JRException, IOException, SQLException {
 
-
 		Connection con = null;
 
 		try {
@@ -67,11 +66,8 @@ public class JasperCtl {
 			// ✅ 7. Response
 			response.setContentType("application/pdf");
 			response.setHeader("Content-Disposition", "inline; filename=marksheet.pdf");
-
 			response.getOutputStream().write(pdf);
 			response.getOutputStream().flush();
-
-			System.out.println("******** Report Generated ********");
 
 		} catch (Exception e) {
 			e.printStackTrace();
