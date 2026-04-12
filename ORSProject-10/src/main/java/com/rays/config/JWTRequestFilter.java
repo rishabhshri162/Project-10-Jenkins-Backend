@@ -76,6 +76,7 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 					throw new Exception("Invalid JWT token");
 				}
 
+
 				if (loginId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
 					UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(loginId);
@@ -90,27 +91,22 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 
 				UserDTO dto = new UserDTO();
 				dto.setLoginId(loginId);
-				UserContextHolder.setContext(new UserContext(dto));
 
-				// Fetch user from database to get complete details
-				UserContext tempContext = new UserContext(dto);
-				UserDTO fullUserDTO = userService.findByLoginId(loginId, tempContext);
+				System.out.println("request filter: " + dto.getLoginId());
 
-				if (fullUserDTO != null) {
-					UserContext context = new UserContext(fullUserDTO);
-					UserContextHolder.setContext(context);
-				} else {
-					UserContext context = new UserContext(dto);
-					UserContextHolder.setContext(context);
-				}
-			} catch (CannotCreateTransactionException | DataAccessResourceFailureException
-					| JDBCConnectionException e) {
-				// DB is down
-				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
-				response.setContentType("application/json");
-				response.getWriter().write(
-						"{\"result\":{\"message\":\"Database server down!! Please try again later.\"},\"success\":false}");
-				return;
+				UserContext context = new UserContext(dto);
+
+				// ThreadLocal me set
+				UserContextHolder.setContext(context);
+
+//			} catch (CannotCreateTransactionException | DataAccessResourceFailureException
+//					| JDBCConnectionException e) {
+//				// DB is down
+//				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
+//				response.setContentType("application/json");
+//				response.getWriter().write(
+//						"{\"result\":{\"message\":\"Database server down!! Please try again later.\"},\"success\":false}");
+//				return;
 			}catch (Exception e) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getWriter().write("Token is invalid... plz login again..!!");
