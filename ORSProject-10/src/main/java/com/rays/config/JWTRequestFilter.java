@@ -95,7 +95,6 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 	                UserContext context = new UserContext(dto);
 	                UserContextHolder.setContext(context);
 	            } catch (Exception e) {
-	                // Token is invalid or expired
 	                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 	                response.setContentType("application/json");
 	                response.getWriter().write(e.getMessage());

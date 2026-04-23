@@ -28,10 +28,8 @@ import com.rays.dto.UserDTO;
  * This class is extended by all controllers to reuse common functionalities
  * like save, get, delete, and search operations.
  * 
- * It works with generic types:
- * F = Form class
- * T = DTO class
- * S = Service interface
+ * It works with generic types: F = Form class T = DTO class S = Service
+ * interface
  * 
  * It also handles validation, user context, and response formatting.
  * 
@@ -48,8 +46,8 @@ public class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends BaseServic
 	protected UserContext userContext = null;
 
 	/**
-	 * Sets user context for every request.
-	 * If no user is found, a default user is assigned.
+	 * Sets user context for every request. If no user is found, a default user is
+	 * assigned.
 	 */
 	@ModelAttribute
 	public void setUserContext() {
@@ -90,7 +88,7 @@ public class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends BaseServic
 	/**
 	 * Saves or updates a record.
 	 * 
-	 * @param form form data
+	 * @param form          form data
 	 * @param bindingResult validation result
 	 * @return ORSResponse with result status
 	 */
@@ -103,38 +101,40 @@ public class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends BaseServic
 			return res;
 		}
 
-			T dto = (T) form.getDto();
-			
-			//update method
-			if (dto.getId() != null && dto.getId() > 0) {
+		T dto = (T) form.getDto();
 
-				T existDto1 = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
+		// update method
+		if (dto.getId() != null && dto.getId() > 0) {
 
-				if (existDto1 != null && dto.getId() != existDto1.getId()) {
+			T existDto1 = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
+
+			if (existDto1 != null && dto.getId() != existDto1.getId()) {
+				res.setSuccess(false);
+				res.addMessage(dto.getLabel() + " already exist");
+				return res;
+			}
+			baseService.update(dto, userContext);
+			res.addData(dto.getId());
+			res.addMessage(dto.getTableName() + " updated successfully..!!");
+
+			// ADD method
+		} else {
+			if (dto.getUniqueKey() != null && !dto.getUniqueKey().equals("")) {
+				T existDto = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
+				if (existDto != null) {
 					res.setSuccess(false);
 					res.addMessage(dto.getLabel() + " already exist");
 					return res;
 				}
-				baseService.update(dto, userContext);
-				res.addData(dto.getId());
-				res.addMessage(dto.getTableName() + " updated successfully..!!");
-
-				// ADD method
-			} else {
-				if (dto.getUniqueKey() != null && !dto.getUniqueKey().equals("")) {
-					T existDto = (T) baseService.findByUniqueKey(dto.getUniqueKey(), dto.getUniqueValue(), userContext);
-					if (existDto != null) {
-						res.setSuccess(false);
-						res.addMessage(dto.getLabel() + " already exist");
-						return res;
-					}
-				}
-				baseService.add(dto, userContext);
-				res.setSuccess(true);
-				res.addMessage(dto.getTableName() + " added successfully..!!");
 			}
+			Long id = baseService.add(dto, userContext);
+			res.setSuccess(true);
+			res.addData(id);
+			res.addMessage(dto.getTableName() + " added successfully..!!");
+		}
 		return res;
 	}
+
 	/**
 	 * Retrieves a record by ID.
 	 * 
@@ -161,9 +161,9 @@ public class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends BaseServic
 	/**
 	 * Deletes multiple records by IDs.
 	 * 
-	 * @param ids array of record IDs
+	 * @param ids    array of record IDs
 	 * @param pageNo current page number
-	 * @param form form data
+	 * @param form   form data
 	 * @return ORSResponse with updated list
 	 */
 	@PostMapping("deleteMany/{ids}")
@@ -198,7 +198,7 @@ public class BaseCtl<F extends BaseForm, T extends BaseDTO, S extends BaseServic
 	/**
 	 * Searches records with pagination.
 	 * 
-	 * @param form search form
+	 * @param form   search form
 	 * @param pageNo page number
 	 * @return ORSResponse with result list
 	 */
