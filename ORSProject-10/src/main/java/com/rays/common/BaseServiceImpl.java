@@ -39,10 +39,11 @@ public class BaseServiceImpl<T extends BaseDTO, D extends BaseDAOInt<T>> impleme
 	public long add(T dto, UserContext userContext) throws DuplicateRecordException {
 		long pk = baseDao.add(dto, userContext);
 		return pk;
+		
 	}
 
 	/**
-	 * Updates an existing record.
+	 * Updates an existing record.+98
 	 * 
 	 * @param dto data object
 	 * @param userContext user context
